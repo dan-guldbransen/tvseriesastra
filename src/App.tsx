@@ -1,26 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
+import { useState, useEffect } from 'react';
+import { Route, Routes } from 'react-router-dom';
+
+import CardList from './components/card-list/card-list.component';
+import ShowDetails from './components/show-details/show-details.component';
+
 import './App.css';
 
-function App() {
+const App = () => {
+  const [shows, setShows] = useState<any>([]);
+  const [searchField, setSearchField] = useState('');
+  const [filteredShows, setFilteredShows] = useState(shows);
+
+  useEffect(() => {
+    fetch('https://api.tvmaze.com/shows')
+      .then((response) => response.json())
+      .then((users) => setShows(users));
+  }, []);
+
+  useEffect(() => {
+    const newFilteredShows = shows.filter((shows: { name: string }) => {
+      return shows.name.toLocaleLowerCase().includes(searchField);
+    });
+    setFilteredShows(newFilteredShows);
+  }, [shows, searchField]);
+
+  const onSearchChange = (e: { target: { value: string } }) => {
+    const searchFieldString = e.target.value.toLocaleLowerCase();
+    setSearchField(searchFieldString);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Routes>
+        <Route
+          path='/'
+          element={
+            <CardList onSearchChange={onSearchChange} shows={filteredShows} />
+          }
+        />
+        <Route
+          path='/show-details/:id'
+          element={<ShowDetails shows={shows} />}
+        />
+        ;
+      </Routes>
+    </>
   );
-}
+};
 
 export default App;
